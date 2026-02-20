@@ -11,7 +11,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:4200",
+    origin: "leave-management-system-alpha.vercel.app",
     credentials: true,
   }),
 );
