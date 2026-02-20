@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://leave-management-system-glxq.onrender.com',
+  apiUrl: 'https://leave-management-system-glxq.onrender.com/api',
 };
