@@ -1,0 +1,97 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+      <p class="text-gray-500 text-sm mt-1">Overview of all leave requests</p>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="text-center py-20 text-gray-400">Loading...</div>
+
+    <ng-container *ngIf="!isLoading && stats">
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <!-- Total Employees -->
+        <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-400">
+          <p class="text-sm text-gray-500 font-medium">Total Employees</p>
+          <p class="text-3xl font-bold text-blue-500 mt-1">{{ stats.totalEmployees }}</p>
+        </div>
+
+        <!-- Pending -->
+        <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-yellow-400">
+          <p class="text-sm text-gray-500 font-medium">Pending</p>
+          <p class="text-3xl font-bold text-yellow-500 mt-1">{{ stats.pendingCount }}</p>
+        </div>
+
+        <!-- Approved -->
+        <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-green-400">
+          <p class="text-sm text-gray-500 font-medium">Approved</p>
+          <p class="text-3xl font-bold text-green-500 mt-1">{{ stats.approvedCount }}</p>
+        </div>
+
+        <!-- Rejected -->
+        <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-red-400">
+          <p class="text-sm text-gray-500 font-medium">Rejected</p>
+          <p class="text-3xl font-bold text-red-500 mt-1">{{ stats.rejectedCount }}</p>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="flex gap-4 mb-8">
+        <a
+          routerLink="/admin/leaves"
+          class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition"
+        >
+          Manage All Leaves
+        </a>
+      </div>
+
+      <!-- Recent Pending Leaves -->
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b flex items-center justify-between">
+          <h2 class="text-base font-semibold text-gray-700">Recent Pending Requests</h2>
+          <a routerLink="/admin/leaves" class="text-sm text-blue-600 hover:underline">View all</a>
+        </div>
+
+        <!-- Empty -->
+        <div *ngIf="stats.recentLeaves.length === 0" class="text-center py-10 text-gray-400">
+          No pending leave requests 🎉
+        </div>
+
+        <!-- Table -->
+        <table *ngIf="stats.recentLeaves.length > 0" class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+            <tr>
+              <th class="px-6 py-3 text-left">Employee</th>
+              <th class="px-6 py-3 text-left">Reason</th>
+              <th class="px-6 py-3 text-left">Start Date</th>
+              <th class="px-6 py-3 text-left">End Date</th>
+              <th class="px-6 py-3 text-left">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr *ngFor="let leave of stats.recentLeaves" class="hover:bg-gray-50 transition">
+              <td class="px-6 py-4">
+                <p class="font-medium text-gray-700">{{ leave.employee.name }}</p>
+                <p class="text-xs text-gray-400">{{ leave.employee.email }}</p>
+              </td>
+              <td class="px-6 py-4 text-gray-600">{{ leave.reason }}</td>
+              <td class="px-6 py-4 text-gray-500">{{ leave.startDate | date: 'mediumDate' }}</td>
+              <td class="px-6 py-4 text-gray-500">{{ leave.endDate | date: 'mediumDate' }}</td>
+              <td class="px-6 py-4">
+                <span
+                  [class]="
+                    'px-2.5 py-1 rounded-full text-xs font-semibold ' + getStatusClass(leave.status)
+                  "
+                >
+                  {{ leave.status }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </div>
+</div>

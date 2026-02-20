@@ -1,0 +1,92 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-6xl mx-auto">
+    <!-- Welcome Header -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">
+        Welcome back, {{ authService.currentUser?.name }}! 👋
+      </h1>
+      <p class="text-gray-500 text-sm mt-1">Here's your leave summary</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <!-- Pending -->
+      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-yellow-400">
+        <p class="text-sm text-gray-500 font-medium">Pending</p>
+        <p class="text-3xl font-bold text-yellow-500 mt-1">{{ pendingCount }}</p>
+      </div>
+
+      <!-- Approved -->
+      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-green-400">
+        <p class="text-sm text-gray-500 font-medium">Approved</p>
+        <p class="text-3xl font-bold text-green-500 mt-1">{{ approvedCount }}</p>
+      </div>
+
+      <!-- Rejected -->
+      <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-red-400">
+        <p class="text-sm text-gray-500 font-medium">Rejected</p>
+        <p class="text-3xl font-bold text-red-500 mt-1">{{ rejectedCount }}</p>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="flex gap-4 mb-8">
+      <a
+        routerLink="/employee/apply"
+        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition"
+      >
+        + Apply for Leave
+      </a>
+      <a
+        routerLink="/employee/history"
+        class="bg-white hover:bg-gray-100 text-gray-700 text-sm font-semibold px-5 py-2.5 rounded-lg border transition"
+      >
+        View Full History
+      </a>
+    </div>
+
+    <!-- Recent Leaves Table -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b">
+        <h2 class="text-base font-semibold text-gray-700">Recent Leave Requests</h2>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="text-center py-10 text-gray-400">Loading...</div>
+
+      <!-- Empty -->
+      <div *ngIf="!isLoading && leaves.length === 0" class="text-center py-10 text-gray-400">
+        No leave requests yet.
+        <a routerLink="/employee/apply" class="text-blue-500 hover:underline ml-1">Apply now</a>
+      </div>
+
+      <!-- Table -->
+      <table *ngIf="!isLoading && leaves.length > 0" class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+          <tr>
+            <th class="px-6 py-3 text-left">Reason</th>
+            <th class="px-6 py-3 text-left">Start Date</th>
+            <th class="px-6 py-3 text-left">End Date</th>
+            <th class="px-6 py-3 text-left">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let leave of leaves.slice(0, 5)" class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4 text-gray-700">{{ leave.reason }}</td>
+            <td class="px-6 py-4 text-gray-500">{{ leave.startDate | date: 'mediumDate' }}</td>
+            <td class="px-6 py-4 text-gray-500">{{ leave.endDate | date: 'mediumDate' }}</td>
+            <td class="px-6 py-4">
+              <span
+                [class]="
+                  'px-2.5 py-1 rounded-full text-xs font-semibold ' + getStatusClass(leave.status)
+                "
+              >
+                {{ leave.status }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

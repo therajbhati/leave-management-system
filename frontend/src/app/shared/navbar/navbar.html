@@ -1,0 +1,76 @@
+<nav *ngIf="authService.isLoggedIn" class="bg-blue-700 text-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-2 cursor-pointer" (click)="goToDashboard()">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-7 w-7"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+        />
+      </svg>
+      <span class="text-xl font-bold tracking-wide">LeaveMS</span>
+    </div>
+
+    <div class="flex items-center gap-6 text-sm font-medium">
+      <ng-container *ngIf="!authService.isAdmin">
+        <a
+          routerLink="/employee/dashboard"
+          routerLinkActive="underline"
+          class="hover:text-blue-200 transition"
+          >Dashboard</a
+        >
+        <a
+          routerLink="/employee/apply"
+          routerLinkActive="underline"
+          class="hover:text-blue-200 transition"
+          >Apply Leave</a
+        >
+        <a
+          routerLink="/employee/history"
+          routerLinkActive="underline"
+          class="hover:text-blue-200 transition"
+          >My Leaves</a
+        >
+      </ng-container>
+      <ng-container *ngIf="authService.isAdmin">
+        <a
+          routerLink="/admin/dashboard"
+          routerLinkActive="underline"
+          class="hover:text-blue-200 transition"
+          >Dashboard</a
+        >
+        <a
+          routerLink="/admin/leaves"
+          routerLinkActive="underline"
+          class="hover:text-blue-200 transition"
+          >Manage Leaves</a
+        >
+      </ng-container>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div class="text-right hidden sm:block">
+        <p class="text-sm font-semibold">{{ authService.currentUser?.name }}</p>
+        <p class="text-xs text-blue-200">{{ authService.currentUser?.role }}</p>
+      </div>
+      <div
+        class="bg-white text-blue-700 font-bold rounded-full h-9 w-9 flex items-center justify-center text-sm uppercase"
+      >
+        {{ authService.currentUser?.name?.charAt(0) }}
+      </div>
+      <button
+        (click)="logout()"
+        class="bg-white text-blue-700 text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-100 transition"
+      >
+        Logout
+      </button>
+    </div>
+  </div>
+</nav>
