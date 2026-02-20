@@ -1,0 +1,6 @@
+{
+  "verbose": true,
+  "watch": ["*.js", "**/*.js"],
+  "ext": "js,json",
+  "legacyWatch": true
+}
