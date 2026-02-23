@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-login',
@@ -19,6 +20,7 @@ export class LoginComponent {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {
     if (this.authService.isLoggedIn) this.redirectUser();
 
@@ -57,7 +59,9 @@ export class LoginComponent {
       },
       error: (err: any) => {
         this.isLoading = false;
+
         this.errorMessage = err.error?.message || 'Login failed. Please try again.';
+        this.cdr.detectChanges();
       },
     });
   }
