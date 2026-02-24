@@ -18,8 +18,8 @@ export class LoginComponent {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router,
+    public authService: AuthService,
+    public router: Router,
     private cdr: ChangeDetectorRef,
   ) {
     if (this.authService.isLoggedIn) this.redirectUser();

@@ -1,37 +1,34 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db"); // Import connection
 
-const leaveSchema = new mongoose.Schema(
-  {
-    employee: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: "User",
-    },
-    startDate: {
-      type: Date,
-      required: [true, "Please provide a start date"],
-    },
-    endDate: {
-      type: Date,
-      required: [true, "Please provide an end date"],
-    },
-    reason: {
-      type: String,
-      required: [true, "Please provide a reason for the leave"],
-    },
-    status: {
-      type: String,
-      enum: ["Pending", "Approved", "Rejected", "Cancelled"],
-      default: "Pending",
-    },
-    adminRemarks: {
-      type: String,
-      default: "",
-    },
+const Leave = sequelize.define("Leave", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
   },
-  {
-    timestamps: true,
+  startDate: {
+    type: DataTypes.DATEONLY, // DATEONLY stores just YYYY-MM-DD
+    allowNull: false,
   },
-);
+  endDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+  },
+  reason: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  status: {
+    type: DataTypes.ENUM("Pending", "Approved", "Rejected", "Cancelled"),
+    defaultValue: "Pending",
+  },
+  adminRemarks: {
+    type: DataTypes.STRING,
+    defaultValue: "",
+  },
+  // Note: We don't manually add 'employeeId' here.
+  // Sequelize adds it automatically when we define the relationship below.
+});
 
-module.exports = mongoose.model("Leave", leaveSchema);
+module.exports = Leave;

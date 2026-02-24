@@ -62,4 +62,16 @@ export class AuthService {
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  // ✅ NEW: Reset password using code or token
+  resetPassword(payload: {
+    token?: string;
+    code?: string;
+    newPassword: string;
+  }): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/reset-password`, payload);
+  }
 }

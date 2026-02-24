@@ -1,5 +1,5 @@
-// backend/controllers/leaveController.js
 const Leave = require("../models/Leave");
+const User = require("../models/User"); // Import User for relationships
 
 const applyLeave = async (req, res) => {
   try {
@@ -17,8 +17,9 @@ const applyLeave = async (req, res) => {
         .json({ message: "End date cannot be before start date" });
     }
 
+    // Create Leave (Sequelize automatically handles the foreign key 'userId')
     const leave = await Leave.create({
-      employee: req.user._id,
+      userId: req.user.id, // Using the ID from the decoded token
       startDate,
       endDate,
       reason,
@@ -32,8 +33,10 @@ const applyLeave = async (req, res) => {
 
 const getMyLeaves = async (req, res) => {
   try {
-    const leaves = await Leave.find({ employee: req.user._id }).sort({
-      createdAt: -1,
+    // Find all leaves for this specific user
+    const leaves = await Leave.findAll({
+      where: { userId: req.user.id },
+      order: [["createdAt", "DESC"]],
     });
 
     res.status(200).json(leaves);
@@ -44,13 +47,14 @@ const getMyLeaves = async (req, res) => {
 
 const cancelLeave = async (req, res) => {
   try {
-    const leave = await Leave.findById(req.params.id);
+    const leave = await Leave.findByPk(req.params.id);
 
     if (!leave) {
       return res.status(404).json({ message: "Leave request not found" });
     }
 
-    if (leave.employee.toString() !== req.user._id.toString()) {
+    // Check ownership (Comparing integers in MySQL)
+    if (leave.userId !== req.user.id) {
       return res
         .status(403)
         .json({ message: "Not authorized to cancel this leave" });
@@ -73,9 +77,25 @@ const cancelLeave = async (req, res) => {
 
 const getAllLeaves = async (req, res) => {
   try {
-    const leaves = await Leave.find()
-      .populate("employee", "name email")
-      .sort({ createdAt: -1 });
+    // Fetch leaves and JOIN with User table
+    const leavesRaw = await Leave.findAll({
+      include: [
+        {
+          model: User,
+          attributes: ["name", "email"], // Select only name and email
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    // Transform data to match MongoDB structure (Sequelize returns User inside 'User' object)
+    // We map it to 'employee' so your Frontend code (leave.employee.name) still works
+    const leaves = leavesRaw.map((leave) => {
+      const leaveJson = leave.toJSON();
+      leaveJson.employee = leaveJson.User; // Map 'User' to 'employee'
+      delete leaveJson.User; // Clean up
+      return leaveJson;
+    });
 
     res.status(200).json(leaves);
   } catch (error) {
@@ -93,7 +113,7 @@ const updateLeaveStatus = async (req, res) => {
         .json({ message: "Status must be Approved or Rejected" });
     }
 
-    const leave = await Leave.findById(req.params.id);
+    const leave = await Leave.findByPk(req.params.id);
 
     if (!leave) {
       return res.status(404).json({ message: "Leave request not found" });
@@ -117,24 +137,37 @@ const updateLeaveStatus = async (req, res) => {
 
 const getDashboardStats = async (req, res) => {
   try {
-    const User = require("../models/User");
-
     const [
       totalEmployees,
       pendingCount,
       approvedCount,
       rejectedCount,
-      recentLeaves,
+      recentLeavesRaw,
     ] = await Promise.all([
-      User.countDocuments({ role: "Employee" }),
-      Leave.countDocuments({ status: "Pending" }),
-      Leave.countDocuments({ status: "Approved" }),
-      Leave.countDocuments({ status: "Rejected" }),
-      Leave.find({ status: "Pending" })
-        .populate("employee", "name email")
-        .sort({ createdAt: -1 })
-        .limit(5),
+      User.count({ where: { role: "Employee" } }),
+      Leave.count({ where: { status: "Pending" } }),
+      Leave.count({ where: { status: "Approved" } }),
+      Leave.count({ where: { status: "Rejected" } }),
+      Leave.findAll({
+        where: { status: "Pending" },
+        include: [
+          {
+            model: User,
+            attributes: ["name", "email"],
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+        limit: 5,
+      }),
     ]);
+
+    // Transform recent leaves to match MongoDB structure
+    const recentLeaves = recentLeavesRaw.map((leave) => {
+      const leaveJson = leave.toJSON();
+      leaveJson.employee = leaveJson.User;
+      delete leaveJson.User;
+      return leaveJson;
+    });
 
     res.status(200).json({
       totalEmployees,

@@ -13,6 +13,25 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/register/register').then((m) => m.RegisterComponent),
   },
+  // ✅ NEW
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password').then(
+        (m) => m.ForgotPasswordComponent,
+      ),
+  },
+  // ✅ NEW — supports both /auth/reset-password?token=xxx and /reset-password
+  {
+    path: 'auth/reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password').then((m) => m.ResetPasswordComponent),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password').then((m) => m.ResetPasswordComponent),
+  },
   {
     path: 'employee/dashboard',
     loadComponent: () =>
@@ -49,6 +68,7 @@ export const routes: Routes = [
       import('./features/admin/manage-leaves/manage-leaves').then((m) => m.ManageLeavesComponent),
     canActivate: [authGuard, adminGuard],
   },
+
   {
     path: '**',
     loadComponent: () => import('./features/not-found/not-found').then((m) => m.NotFoundComponent),

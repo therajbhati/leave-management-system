@@ -73,8 +73,8 @@
           <tbody class="divide-y divide-gray-100">
             <tr *ngFor="let leave of stats.recentLeaves" class="hover:bg-gray-50 transition">
               <td class="px-6 py-4">
-                <p class="font-medium text-gray-700">{{ leave.employee.name }}</p>
-                <p class="text-xs text-gray-400">{{ leave.employee.email }}</p>
+                <p class="font-medium text-gray-700">{{ leave.employee?.name || 'Unknown' }}</p>
+                <p class="text-xs text-gray-400">{{ leave.employee?.email || 'No Email' }}</p>
               </td>
               <td class="px-6 py-4 text-gray-600">{{ leave.reason }}</td>
               <td class="px-6 py-4 text-gray-500">{{ leave.startDate | date: 'mediumDate' }}</td>

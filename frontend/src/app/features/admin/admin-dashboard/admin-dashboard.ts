@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { LeaveService, DashboardStats } from '../../../core/services/leave';
+import { LeaveService, DashboardStats } from '../../../core/services/leave'; // Check this path!
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -12,6 +12,7 @@ import { LeaveService, DashboardStats } from '../../../core/services/leave';
 export class AdminDashboardComponent implements OnInit {
   stats: DashboardStats | null = null;
   isLoading = true;
+  errorMessage = '';
 
   constructor(
     private leaveService: LeaveService,
@@ -19,13 +20,23 @@ export class AdminDashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    console.log('🚀 Dashboard: Initialization started...');
+
     this.leaveService.getDashboardStats().subscribe({
       next: (data) => {
+        console.log('✅ Dashboard Stats Loaded:', data);
         this.stats = data;
         this.isLoading = false;
-        this.cdr.detectChanges();
+        this.cdr.detectChanges(); // Force update the HTML
       },
-      error: () => {
+      error: (err) => {
+        console.error('🔥 Dashboard Error:', err);
+        // If error is 401, it means token is bad
+        if (err.status === 401) {
+          this.errorMessage = 'Session expired. Please Logout and Login again.';
+        } else {
+          this.errorMessage = 'Failed to load dashboard data.';
+        }
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -39,6 +50,6 @@ export class AdminDashboardComponent implements OnInit {
       Rejected: 'bg-red-100 text-red-700',
       Cancelled: 'bg-gray-100 text-gray-600',
     };
-    return classes[status] || '';
+    return classes[status] || 'bg-gray-100 text-gray-800';
   }
 }
