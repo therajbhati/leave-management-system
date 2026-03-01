@@ -8,7 +8,7 @@ const Leave = sequelize.define("Leave", {
     autoIncrement: true,
   },
   startDate: {
-    type: DataTypes.DATEONLY, // DATEONLY stores just YYYY-MM-DD
+    type: DataTypes.DATEONLY,
     allowNull: false,
   },
   endDate: {
@@ -27,8 +27,6 @@ const Leave = sequelize.define("Leave", {
     type: DataTypes.STRING,
     defaultValue: "",
   },
-  // Note: We don't manually add 'employeeId' here.
-  // Sequelize adds it automatically when we define the relationship below.
 });
 
 module.exports = Leave;

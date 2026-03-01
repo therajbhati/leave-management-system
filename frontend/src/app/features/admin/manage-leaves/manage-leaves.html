@@ -109,13 +109,13 @@
                 />
                 <div class="flex gap-2">
                   <button
-                    (click)="updateStatus(leave._id, 'Approved', leave.adminRemarks)"
+                    (click)="updateStatus(leave.id.toString(), 'Approved', leave.adminRemarks)"
                     class="bg-green-500 hover:bg-green-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition"
                   >
                     Approve
                   </button>
                   <button
-                    (click)="updateStatus(leave._id, 'Rejected', leave.adminRemarks)"
+                    (click)="updateStatus(leave.id.toString(), 'Rejected', leave.adminRemarks)"
                     class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition"
                   >
                     Reject

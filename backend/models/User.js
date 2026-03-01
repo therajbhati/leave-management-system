@@ -30,7 +30,7 @@ const User = sequelize.define(
       type: DataTypes.ENUM("Employee", "Admin"),
       defaultValue: "Employee",
     },
-    // ✅ NEW: For Forgot Password
+
     resetPasswordToken: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -57,7 +57,7 @@ const User = sequelize.define(
           user.password = await bcrypt.hash(user.password, salt);
         }
       },
-      // ✅ NEW: Hash password if it was changed (for reset password)
+
       beforeUpdate: async (user) => {
         if (user.changed("password")) {
           const salt = await bcrypt.genSalt(10);

@@ -44,6 +44,8 @@ export class ForgotPasswordComponent {
       error: (err) => {
         this.isLoading = false;
         this.errorMessage = err.error?.message || 'Something went wrong. Please try again.';
+        this.successMessage = 'Reset code sent! Redirecting...';
+        setTimeout(() => this.router.navigate(['/auth/reset-password']), 2000);
       },
     });
   }

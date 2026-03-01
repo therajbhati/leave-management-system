@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 
 export interface Leave {
   _id: string;
+  id: number | string; // ← change this
   employee: any;
   startDate: string;
   endDate: string;

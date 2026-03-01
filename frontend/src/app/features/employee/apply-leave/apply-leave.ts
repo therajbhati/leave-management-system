@@ -1,8 +1,32 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+  AbstractControl,
+  ValidationErrors,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { LeaveService } from '../../../core/services/leave';
+
+function futureDateValidator(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) return null;
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, '0');
+  const d = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${y}-${m}-${d}`;
+  return control.value <= todayStr ? { pastDate: true } : null;
+}
+
+function endAfterStartValidator(form: AbstractControl): ValidationErrors | null {
+  const start = form.get('startDate')?.value;
+  const end = form.get('endDate')?.value;
+  if (!start || !end) return null;
+  return new Date(end) <= new Date(start) ? { endNotAfterStart: true } : null;
+}
 
 @Component({
   selector: 'app-apply-leave',
@@ -16,17 +40,29 @@ export class ApplyLeaveComponent {
   successMessage = '';
   errorMessage = '';
 
+  get minDate(): string {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const y = tomorrow.getFullYear();
+    const m = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const d = String(tomorrow.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
   constructor(
     private fb: FormBuilder,
     private leaveService: LeaveService,
     private router: Router,
     private cdr: ChangeDetectorRef,
   ) {
-    this.leaveForm = this.fb.group({
-      startDate: ['', Validators.required],
-      endDate: ['', Validators.required],
-      reason: ['', [Validators.required, Validators.minLength(10)]],
-    });
+    this.leaveForm = this.fb.group(
+      {
+        startDate: ['', [Validators.required, futureDateValidator]],
+        endDate: ['', [Validators.required, futureDateValidator]],
+        reason: ['', [Validators.required, Validators.minLength(10)]],
+      },
+      { validators: endAfterStartValidator },
+    );
   }
 
   get startDate() {
@@ -37,6 +73,9 @@ export class ApplyLeaveComponent {
   }
   get reason() {
     return this.leaveForm.get('reason');
+  }
+  get endNotAfterStart() {
+    return this.leaveForm.hasError('endNotAfterStart') && this.endDate?.touched;
   }
 
   onSubmit(): void {

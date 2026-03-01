@@ -1,14 +1,19 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const { connectDB, sequelize } = require("./config/db"); // Import sequelize to sync tables
-const User = require("./models/User"); // Import models to define relations
+const { connectDB, sequelize } = require("./config/db");
+const User = require("./models/User");
 const Leave = require("./models/Leave");
+const {
+  decryptRequest,
+  encryptResponse,
+} = require("./middlewares/encryptionMiddleware");
 
 dotenv.config();
 
 const app = express();
 
+// ── 1. CORS ───────────────────────────────────────────────────────
 app.use(
   cors({
     origin: [
@@ -18,32 +23,38 @@ app.use(
     credentials: true,
   }),
 );
+
+// ── 2. Parse JSON bodies (must come before decryption) ────────────
 app.use(express.json());
 
-// --- 1. Define Database Relationships ---
-// This tells MySQL: "A User can have many Leaves, and a Leave belongs to one User"
+// ── 3. GLOBAL: Encrypt all responses ─────────────────────────────
+// Registered before routes so every res.json() is intercepted
+app.use(encryptResponse);
+
+// ── 4. GLOBAL: Decrypt all incoming request bodies ───────────────
+// Runs before routes, auth middleware, and controllers
+// Order: Decrypt → JWT (protect) → Role (adminOnly) → Controller → Encrypt
+app.use(decryptRequest);
+
+// ── 5. Database Relationships ─────────────────────────────────────
 User.hasMany(Leave, { foreignKey: "userId" });
 Leave.belongsTo(User, { foreignKey: "userId" });
 
-// --- 2. Routes ---
+// ── 6. Routes ─────────────────────────────────────────────────────
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/leaves", require("./routes/leaveRoutes"));
 
 app.get("/", (req, res) => {
-  res.send("Leave Management API is running...");
+  res.json({ message: "Leave Management API is running..." });
 });
 
-// --- 3. Start Server & Sync Database ---
+// ── 7. Start Server ───────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
-    // Connect to MySQL
     await connectDB();
-
-    // Sync tables (creates them if they don't exist)
-    // force: false means "don't delete my data if the table already exists"
-    await sequelize.sync({ alter: true }); // Use alter: true to update tables without dropping data
+    await sequelize.sync({ alter: true });
     console.log("✅ MySQL Tables Synced Successfully");
 
     app.listen(PORT, () => {
