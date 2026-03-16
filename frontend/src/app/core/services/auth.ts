@@ -66,7 +66,7 @@ export class AuthService {
     return this.http.post<{ message: string }>(`${this.apiUrl}/forgot-password`, { email });
   }
 
-  // ✅ NEW: Reset password using code or token
+  //  NEW: Reset password using code or token
   resetPassword(payload: {
     token?: string;
     code?: string;

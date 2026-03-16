@@ -13,7 +13,7 @@ dotenv.config();
 
 const app = express();
 
-// ── 1. CORS ───────────────────────────────────────────────────────
+// ────────────────       CORS    ─────────────────────────────
 app.use(
   cors({
     origin: [
@@ -24,17 +24,15 @@ app.use(
   }),
 );
 
-// ── 2. Parse JSON bodies (must come before decryption) ────────────
+// Parse JSON bodies (must come before decryption)
 app.use(express.json());
 
-// ── 3. GLOBAL: Encrypt all responses ─────────────────────────────
-// Registered before routes so every res.json() is intercepted
+//  Encrypt all responses ─────────────────────────────
 app.use(encryptResponse);
-
-// ── 4. GLOBAL: Decrypt all incoming request bodies ───────────────
-// Runs before routes, auth middleware, and controllers
-// Order: Decrypt → JWT (protect) → Role (adminOnly) → Controller → Encrypt
-app.use(decryptRequest);
+-(
+  //  Decrypt all incoming request bodies ───────────────
+  app.use(decryptRequest)
+);
 
 // ── 5. Database Relationships ─────────────────────────────────────
 User.hasMany(Leave, { foreignKey: "userId" });

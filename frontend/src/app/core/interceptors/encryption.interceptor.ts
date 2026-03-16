@@ -1,19 +1,13 @@
-import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
+import {
+  HttpInterceptorFn,
+  HttpRequest,
+  HttpHandlerFn,
+  HttpEvent,
+  HttpResponse,
+} from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, catchError, throwError } from 'rxjs';
 import { EncryptionService } from '../services/encryption.service';
-
-// ─────────────────────────────────────────────────────────────────
-// Encryption Interceptor
-// Runs on EVERY HTTP request/response automatically.
-//
-// REQUEST:  { any payload } → { data: "ivHex:encryptedBase64" }
-// RESPONSE: { data: "ivHex:encryptedBase64" } → { original payload }
-//
-// Works alongside jwtInterceptor — order in app.config.ts matters:
-//   [jwtInterceptor, encryptionInterceptor]
-//   JWT runs first (adds Authorization header), then encryption wraps body
-// ─────────────────────────────────────────────────────────────────
 
 export const encryptionInterceptor: HttpInterceptorFn = (
   req: HttpRequest<any>,
@@ -21,9 +15,7 @@ export const encryptionInterceptor: HttpInterceptorFn = (
 ): Observable<HttpEvent<any>> => {
   const encryptionService = inject(EncryptionService);
 
-  // ── Encrypt Request Body ──────────────────────────────────────
-  // Only encrypt if there is a body (POST, PATCH, PUT)
-  // GET, DELETE requests have no body — skip
+  // ── Encrypt Request ──────────────────────────────────────
   let encryptedReq = req;
 
   if (req.body !== null && req.body !== undefined) {
@@ -33,28 +25,35 @@ export const encryptionInterceptor: HttpInterceptorFn = (
         body: { data: encryptedBody },
       });
     } catch (err) {
-      console.error('❌ Request encryption failed:', err);
-      // Send original if encryption fails (should never happen)
+      console.error('Request encryption failed:', err);
       encryptedReq = req;
     }
   }
 
-  // ── Decrypt Response Body ─────────────────────────────────────
+  // ── Decrypt Response ─────────────────────────────────────
   return next(encryptedReq).pipe(
     map((event: HttpEvent<any>) => {
-      // Only process HTTP responses (not upload progress events etc.)
-      if ((event as any).body !== undefined && (event as any).body?.data) {
+      // only process actual HTTP responses
+      if (!(event instanceof HttpResponse)) {
+        return event;
+      }
+
+      if (event.body && typeof event.body.data === 'string' && event.body.data.includes(':')) {
         try {
-          const decryptedBody = encryptionService.decrypt((event as any).body.data);
-          // Clone the event with decrypted body
-          return Object.assign({}, event, { body: decryptedBody });
-        } catch (err) {
-          console.error('❌ Response decryption failed:', err);
-          // Return as-is if decryption fails
-          return event;
+          const decryptedBody = encryptionService.decrypt(event.body.data);
+          return event.clone({ body: decryptedBody });
+        } catch (err: any) {
+          console.error(' Response decryption failed:', err.message);
+          throw new Error(`Decryption failed: ${err.message}`);
         }
       }
+
       return event;
+    }),
+
+    catchError((err) => {
+      console.error(' Interceptor error:', err);
+      return throwError(() => err);
     }),
   );
 };

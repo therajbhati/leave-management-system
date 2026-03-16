@@ -1,19 +1,14 @@
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 
-// ✅ Gmail SMTP Transporter
-// Uses Gmail's secure service shorthand — no need to set host/port manually.
-// Requires an App Password (NOT your normal Gmail password).
-// See: https://myaccount.google.com/apppasswords
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER, // your Gmail address e.g. yourapp@gmail.com
-    pass: process.env.EMAIL_PASS, // Gmail App Password (16 chars, no spaces)
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
-// Verify transporter on startup (helps catch config errors early)
 transporter.verify((error) => {
   if (error) {
     console.error("❌ Email service config error:", error.message);
@@ -22,9 +17,6 @@ transporter.verify((error) => {
   }
 });
 
-// ─────────────────────────────────────────────
-// Welcome email on registration
-// ─────────────────────────────────────────────
 const sendWelcomeEmail = async (toEmail, userName) => {
   const mailOptions = {
     from: `"Leave Management System" <${process.env.EMAIL_USER}>`,
@@ -68,10 +60,6 @@ const sendWelcomeEmail = async (toEmail, userName) => {
   console.log(`✅ Welcome email sent to ${toEmail}`);
 };
 
-// ─────────────────────────────────────────────
-// Forgot password email — reset code + link
-// Both expire in 15 minutes
-// ─────────────────────────────────────────────
 const sendPasswordResetEmail = async (
   toEmail,
   userName,

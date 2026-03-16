@@ -2,29 +2,18 @@ import { Injectable } from '@angular/core';
 import * as CryptoJS from 'crypto-js';
 import { environment } from '../../../environments/environment';
 
-// ─────────────────────────────────────────────────────────────────
-// EncryptionService
-// Mirrors the backend AES-256-CBC logic exactly.
-// Uses the same ENCRYPTION_KEY from environment variables.
-// Format: "ivHex:encryptedBase64"
-// ─────────────────────────────────────────────────────────────────
-
 @Injectable({ providedIn: 'root' })
 export class EncryptionService {
-  // Derive 32-byte key from env string using SHA-256 (matches backend)
   private getKey(): CryptoJS.lib.WordArray {
-    return CryptoJS.SHA256(environment.encryptionKey);
+    return CryptoJS.SHA256(String(environment.encryptionKey));
   }
 
-  /**
-   * Encrypt any JS object/value to "ivHex:encryptedBase64" string
-   */
   encrypt(data: any): string {
     const key = this.getKey();
-    const iv = CryptoJS.lib.WordArray.random(16); // 16 bytes = 128-bit IV
-    const jsonStr = JSON.stringify(data);
+    const iv = CryptoJS.lib.WordArray.random(16);
+    const json = JSON.stringify(data);
 
-    const encrypted = CryptoJS.AES.encrypt(jsonStr, key, {
+    const encrypted = CryptoJS.AES.encrypt(json, key, {
       iv,
       mode: CryptoJS.mode.CBC,
       padding: CryptoJS.pad.Pkcs7,
@@ -36,15 +25,21 @@ export class EncryptionService {
     return `${ivHex}:${encryptedBase64}`;
   }
 
-  /**
-   * Decrypt "ivHex:encryptedBase64" string back to original JS object
-   */
   decrypt(encryptedStr: string): any {
     const key = this.getKey();
-    const [ivHex, encryptedBase64] = encryptedStr.split(':');
+    const parts = encryptedStr.split(':');
+
+    //  validate format before trying to decrypt
+    if (parts.length !== 2) {
+      throw new Error(
+        `Invalid format. Expected "ivHex:base64", got: ${encryptedStr.substring(0, 30)}...`,
+      );
+    }
+
+    const [ivHex, encryptedBase64] = parts;
 
     if (!ivHex || !encryptedBase64) {
-      throw new Error('Invalid encrypted payload format');
+      throw new Error('Missing IV or ciphertext');
     }
 
     const iv = CryptoJS.enc.Hex.parse(ivHex);
@@ -58,6 +53,13 @@ export class EncryptionService {
       padding: CryptoJS.pad.Pkcs7,
     });
 
-    return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
+    const utf8 = decrypted.toString(CryptoJS.enc.Utf8);
+
+    //  check decryption produced actual text
+    if (!utf8) {
+      throw new Error('Decryption produced empty string — ENCRYPTION_KEY mismatch?');
+    }
+
+    return JSON.parse(utf8);
   }
 }

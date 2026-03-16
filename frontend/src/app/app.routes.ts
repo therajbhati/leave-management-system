@@ -13,7 +13,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/register/register').then((m) => m.RegisterComponent),
   },
-  // ✅ NEW
+
   {
     path: 'forgot-password',
     loadComponent: () =>
@@ -21,7 +21,6 @@ export const routes: Routes = [
         (m) => m.ForgotPasswordComponent,
       ),
   },
-  // ✅ NEW — supports both /auth/reset-password?token=xxx and /reset-password
   {
     path: 'auth/reset-password',
     loadComponent: () =>

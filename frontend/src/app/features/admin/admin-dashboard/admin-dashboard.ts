@@ -24,14 +24,14 @@ export class AdminDashboardComponent implements OnInit {
 
     this.leaveService.getDashboardStats().subscribe({
       next: (data) => {
-        console.log('✅ Dashboard Stats Loaded:', data);
+        console.log(' Dashboard Stats Loaded:', data);
         this.stats = data;
         this.isLoading = false;
-        this.cdr.detectChanges(); // Force update the HTML
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('🔥 Dashboard Error:', err);
-        // If error is 401, it means token is bad
+        console.error(' Dashboard Error:', err);
+
         if (err.status === 401) {
           this.errorMessage = 'Session expired. Please Logout and Login again.';
         } else {

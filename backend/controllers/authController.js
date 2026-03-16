@@ -1,22 +1,18 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { Op } = require("sequelize"); // ✅ FIXED: Required for Op.gt in resetPassword
+const { Op } = require("sequelize");
 const {
   sendWelcomeEmail,
   sendPasswordResetEmail,
 } = require("../config/emailService");
 
-// Helper to generate JWT Token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: "30d",
   });
 };
 
-// @desc    Register new user
-// @route   POST /api/auth/register
-// @access  Public
 const registerUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -30,7 +26,6 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Only allow 'Employee' or 'Admin' roles
     const assignedRole = role === "Admin" ? "Admin" : "Employee";
 
     const user = await User.create({
@@ -41,7 +36,6 @@ const registerUser = async (req, res) => {
     });
 
     if (user) {
-      // Send welcome email (non-blocking — won't crash register if mail fails)
       sendWelcomeEmail(user.email, user.name).catch((err) =>
         console.error("Welcome email failed:", err.message),
       );
@@ -63,9 +57,6 @@ const registerUser = async (req, res) => {
   }
 };
 
-// @desc    Authenticate a user
-// @route   POST /api/auth/login
-// @access  Public
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -90,9 +81,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-// @desc    Get user data
-// @route   GET /api/auth/me
-// @access  Private
 const getMe = async (req, res) => {
   try {
     const user = {
@@ -107,16 +95,12 @@ const getMe = async (req, res) => {
   }
 };
 
-// @desc    Send reset code + link to email
-// @route   POST /api/auth/forgot-password
-// @access  Public
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
     const user = await User.findOne({ where: { email } });
 
-    // Always return the same message to prevent email enumeration attacks
     if (!user) {
       return res
         .status(200)
@@ -155,9 +139,6 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-// @desc    Verify code OR token and reset password
-// @route   POST /api/auth/reset-password
-// @access  Public
 const resetPassword = async (req, res) => {
   try {
     const { token, code, newPassword } = req.body;

@@ -1,5 +1,5 @@
 const Leave = require("../models/Leave");
-const User = require("../models/User"); // Import User for relationships
+const User = require("../models/User");
 
 const applyLeave = async (req, res) => {
   try {
@@ -17,9 +17,9 @@ const applyLeave = async (req, res) => {
         .json({ message: "End date cannot be before start date" });
     }
 
-    // Create Leave (Sequelize automatically handles the foreign key 'userId')
+    // Create Leave
     const leave = await Leave.create({
-      userId: req.user.id, // Using the ID from the decoded token
+      userId: req.user.id,
       startDate,
       endDate,
       reason,
@@ -82,18 +82,16 @@ const getAllLeaves = async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ["name", "email"], // Select only name and email
+          attributes: ["name", "email"],
         },
       ],
       order: [["createdAt", "DESC"]],
     });
 
-    // Transform data to match MongoDB structure (Sequelize returns User inside 'User' object)
-    // We map it to 'employee' so your Frontend code (leave.employee.name) still works
     const leaves = leavesRaw.map((leave) => {
       const leaveJson = leave.toJSON();
-      leaveJson.employee = leaveJson.User; // Map 'User' to 'employee'
-      delete leaveJson.User; // Clean up
+      leaveJson.employee = leaveJson.User;
+      delete leaveJson.User;
       return leaveJson;
     });
 

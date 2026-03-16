@@ -48,12 +48,8 @@ const decrypt = (encryptedStr) => {
 
 // ─────────────────────────────────────────────────────────────────
 // MIDDLEWARE 1: Decrypt incoming request body
-// Runs BEFORE auth middleware and controllers
-// Only decrypts if body has { data: "..." } structure
-// GET requests have no body — they pass through untouched
 // ─────────────────────────────────────────────────────────────────
 const decryptRequest = (req, res, next) => {
-  // Skip if no body or no encrypted data field
   if (!req.body || !req.body.data) {
     return next();
   }
@@ -74,8 +70,6 @@ const decryptRequest = (req, res, next) => {
 
 // ─────────────────────────────────────────────────────────────────
 // MIDDLEWARE 2: Encrypt all outgoing responses
-// Runs AFTER controllers by overriding res.json()
-// Every res.json({ ... }) call becomes res.json({ data: "encrypted" })
 // ─────────────────────────────────────────────────────────────────
 const encryptResponse = (req, res, next) => {
   const originalJson = res.json.bind(res);

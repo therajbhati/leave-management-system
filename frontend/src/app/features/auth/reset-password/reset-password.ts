@@ -15,7 +15,7 @@ export class ResetPasswordComponent implements OnInit {
   isLoading = false;
   successMessage = '';
   errorMessage = '';
-  tokenFromUrl: string | null = null; // auto-filled if user clicked email link
+  tokenFromUrl: string | null = null;
 
   constructor(
     private fb: FormBuilder,
